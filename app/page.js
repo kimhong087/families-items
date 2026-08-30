@@ -1,84 +1,138 @@
 import collection from "../collection.config.js";
+import EntryCard from "../components/EntryCard";
+
+// Sample entries for now — swap these for real family items as they come in.
+// Photos live in public/photos/ — add the .jpg files there when you have them;
+// until then each card shows its neutral "photo coming soon" placeholder.
+const entries = [
+  {
+    title: "Grandmother's Krama",
+    khmerName: "ក្រមារបស់លោកយាយ",
+    description:
+      "A hand-woven krama given to my grandmother as a wedding gift in Battambang in 1968. She carried rice seedlings in it, tied her babies to her back with it, and kept it folded at the foot of her bed until she passed away. The red has faded to pink, but my mother will not let anyone wash it again.",
+    contributor: "Chan Sophea",
+    place: "Battambang Province",
+    image: "/photos/krama.jpg",
+    date: "June 2026",
+  },
+  {
+    title: "Grandfather's Betel Box",
+    khmerName: "ក្រឡាម្លូរបស់លោកតា",
+    description:
+      "A small round lacquer box with a worn gold rim that my grandfather opened every morning for his betel leaf and areca nut. He brought it back from Phnom Penh market in the 1950s. It now sits on our family altar, and when we lift the lid we still smell the areca.",
+    contributor: "Nou Vireak",
+    place: "Takeo Province",
+    image: "/photos/grandfathers-betel-box.jpg",
+    date: "June 2026",
+  },
+];
 
 const styles = {
+  page: {
+    minHeight: "100vh",
+    backgroundColor: "#F5F0E6",
+  },
   wrap: {
     maxWidth: 720,
     margin: "0 auto",
-    padding: "80px 24px",
+    padding: "64px 24px 80px",
   },
   kicker: {
-    fontFamily: "'Courier New', monospace",
-    color: "#2EE6A8",
-    fontSize: 14,
-    letterSpacing: 1,
+    fontSize: 12,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    color: "#A8792C",
+    margin: 0,
+    fontWeight: 700
   },
   title: {
-    fontSize: 48,
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    fontSize: 42,
     fontWeight: 700,
-    margin: "16px 0 12px",
-    lineHeight: 1.1,
+    color: "#171411",
+    margin: "14px 0 12px",
+    lineHeight: 1.15,
   },
   description: {
-    fontSize: 18,
-    color: "#97A1B3",
-    lineHeight: 1.6,
+    fontSize: 17,
+    lineHeight: 1.65,
+    color: "#4A433B",
     margin: 0,
   },
   card: {
-    marginTop: 48,
-    padding: 24,
-    backgroundColor: "#1C222C",
-    border: "1px solid #2E3644",
-    borderRadius: 10,
+    marginTop: 24,
+    padding: "18px 20px",
+    backgroundColor: "#FFFCF7",
+    border: "1px solid #DDD3C3",
+    borderRadius: 12,
   },
   cardLabel: {
-    fontFamily: "'Courier New', monospace",
-    fontSize: 12,
-    color: "#97A1B3",
+    fontSize: 11,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    color: "#A8792C",
     margin: 0,
+    fontWeight: 700
   },
   cardValue: {
-    fontSize: 16,
-    margin: "6px 0 0",
+    fontSize: 15,
+    color: "#4A433B",
+    margin: "4px 0 0",
   },
   count: {
-    fontFamily: "'Courier New', monospace",
-    fontSize: 14,
-    color: "#2EE6A8",
-    marginTop: 48,
+    fontSize: 13,
+    letterSpacing: 1,
+    color: "#A8792C",
+    marginTop: 40,
   },
   footer: {
-    marginTop: 64,
-    paddingTop: 24,
-    borderTop: "1px solid #2E3644",
+    marginTop: 56,
+    paddingTop: 20,
+    borderTop: "1px solid #DDD3C3",
     fontSize: 13,
-    color: "#5A6373",
+    lineHeight: 1.6,
+    color: "#4A433B",
   },
 };
 
 export default function Home() {
   return (
-    <main style={styles.wrap}>
-      <p style={styles.kicker}>KHMER LIVING ARCHIVE</p>
-      <h1 style={styles.title}>{collection.name}</h1>
-      <p style={styles.description}>{collection.description}</p>
+    <main style={styles.page}>
+      <div style={styles.wrap}>
+        <p style={styles.kicker}>KHMER LIVING ARCHIVE</p>
+        <h1 style={styles.title}>{collection.name}</h1>
+        <p style={styles.description}>{collection.description}</p>
 
-      <div style={styles.card}>
-        <p style={styles.cardLabel}>CURATED BY</p>
-        <p style={styles.cardValue}>{collection.curator}</p>
+        <div style={styles.card}>
+          <p style={styles.cardLabel}>Curated by</p>
+          <p style={styles.cardValue}>{collection.curator}</p>
+        </div>
+        <div style={styles.card}>
+          <p style={styles.cardLabel}>Source</p>
+          <p style={styles.cardValue}>{collection.source}</p>
+        </div>
+
+        {entries.map((entry) => (
+          <EntryCard
+            key={entry.title}
+            title={entry.title}
+            khmerName={entry.khmerName}
+            description={entry.description}
+            contributor={entry.contributor}
+            place={entry.place}
+            image={entry.image}
+            date={entry.date}
+          />
+        ))}
+
+        <p style={styles.count}>entries in the archive: 2</p>
+
+        <footer style={styles.footer}>
+          Built in ICT 340 — Vibe Coding, American University of Phnom Penh, Fall
+          2026. This archive is under construction all semester. Come back in
+          December.
+        </footer>
       </div>
-      <div style={styles.card}>
-        <p style={styles.cardLabel}>SOURCE</p>
-        <p style={styles.cardValue}>{collection.source}</p>
-      </div>
-
-      <p style={styles.count}>entries in the archive: 0 (for now)</p>
-
-      <footer style={styles.footer}>
-        Built in ICT 340 — Vibe Coding, American University of Phnom Penh, Fall
-        2026. This archive is under construction all semester. Come back in
-        December.
-      </footer>
     </main>
   );
 }
