@@ -1,31 +1,8 @@
 import collection from "../collection.config.js";
-import EntryCard from "../components/EntryCard";
+import ArchiveSearch from "../components/ArchiveSearch";
+import entries from "../data/entries.js";
 
-// Sample entries for now — swap these for real family items as they come in.
-// Photos live in public/photos/ — add the .jpg files there when you have them;
-// until then each card shows its neutral "photo coming soon" placeholder.
-const entries = [
-  {
-    title: "Grandmother's Krama",
-    khmerName: "ក្រមារបស់លោកយាយ",
-    description:
-      "A hand-woven krama given to my grandmother as a wedding gift in Battambang in 1968. She carried rice seedlings in it, tied her babies to her back with it, and kept it folded at the foot of her bed until she passed away. The red has faded to pink, but my mother will not let anyone wash it again.",
-    contributor: "Chan Sophea",
-    place: "Battambang Province",
-    image: "/photos/krama.jpg",
-    date: "June 2026",
-  },
-  {
-    title: "Grandfather's Betel Box",
-    khmerName: "ក្រឡាម្លូរបស់លោកតា",
-    description:
-      "A small round lacquer box with a worn gold rim that my grandfather opened every morning for his betel leaf and areca nut. He brought it back from Phnom Penh market in the 1950s. It now sits on our family altar, and when we lift the lid we still smell the areca.",
-    contributor: "Nou Vireak",
-    place: "Takeo Province",
-    image: "/photos/grandfathers-betel-box.jpg",
-    date: "June 2026",
-  },
-];
+// Entry data lives in data/entries.js — add new objects there.
 
 const styles = {
   page: {
@@ -112,20 +89,9 @@ export default function Home() {
           <p style={styles.cardValue}>{collection.source}</p>
         </div>
 
-        {entries.map((entry) => (
-          <EntryCard
-            key={entry.title}
-            title={entry.title}
-            khmerName={entry.khmerName}
-            description={entry.description}
-            contributor={entry.contributor}
-            place={entry.place}
-            image={entry.image}
-            date={entry.date}
-          />
-        ))}
+        <ArchiveSearch entries={entries} />
 
-        <p style={styles.count}>entries in the archive: 2</p>
+        <p style={styles.count}>entries in the archive: 5</p>
 
         <footer style={styles.footer}>
           Built in ICT 340 — Vibe Coding, American University of Phnom Penh, Fall
