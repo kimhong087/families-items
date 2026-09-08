@@ -18,46 +18,37 @@ const entries = [
     contributor: "Chan Sophea",
     place: "Battambang Province",
     image: "/photos/krama.jpg",
-    date: "June 2026",
+    date: "August 2026",
   },
   {
-    title: "Grandfather's Betel Box",
+    title: "Old Clay Cooking Pot",
     khmerName: "ក្រឡាម្លូរបស់លោកតា",
     description:
-      "A small round lacquer box with a worn gold rim that my grandfather opened every morning for his betel leaf and areca nut. He brought it back from Phnom Penh market in the 1950s. It now sits on our family altar, and when we lift the lid we still smell the areca.",
+      "An old clay cooking pot and charcoal stove from my grandmother's home in Takeo. She used them to cook rice and soup for the family, especially during family gatherings like khmer new year. After years of use, the pot became worn and stained, but it was kept because it reminded the family of the simple meals and memories shared around the old cooking fire.",
     contributor: "Nou Vireak",
     place: "Takeo Province",
-    image: "/photos/betel.jpg",
-    date: "June 2026",
+    image: "/photos/clay.jpg",
+    date: "August 2026",
   },
   {
     title: "Grandmother's Sampot Hol",
     khmerName: "សំពត់ហូលរបស់លោកយាយ",
     description:
-      "A sampot hol patterned with small stars that my great-grandmother wove herself near Phnom Chisor before the war, and passed down to my grandmother. It was worn only at Khmer New Year and weddings. The silk still catches the light at certain angles, and my aunt keeps it wrapped in white cloth at the bottom of her wardrobe.",
+      "A sampot hol patterned with small stars that my great-grandmother wove herself before khmer rouge, and passed down to my grandmother. It was worn only at Khmer New Year and weddings. The silk still catches the light at certain angles, and my aunt keeps it wrapped in white cloth at the bottom of her wardrobe.",
     contributor: "Dith Vannak",
     place: "Takeo Province",
     image: "/photos/sampot-hol.jpg",
-    date: "July 2026",
+    date: "August 2026",
   },
+
   {
-    title: "The Buffalo Bell",
-    khmerName: "កង្វែរបស់លោកតា",
+    title: "Grandpa's Betel Box",
+    khmerName: "ប្រអប់ម្លូររបស់លេាកតា",
     description:
-      "A wooden buffalo bell carved by my grandfather for Sarika, the family's last buffalo, named after the river near their village. Every morning he untied the bell before she went to the field, so he could always find her by its sound. When Sarika died, he hung the bell on the veranda beam, where it still hangs today.",
-    contributor: "Loy Sreymom",
-    place: "Kampong Thom Province",
-    image: "/photos/buffalo-bell.jpg",
-    date: "July 2026",
-  },
-  {
-    title: "The Courtyard Water Pot",
-    khmerName: "ក្អមរបស់លោកយាយ",
-    description:
-      "A tall clay water pot that stood in my grandmother's courtyard in Kampot for as long as anyone can remember. Neighbours passing by in the dry season drank from its tin cup without asking. When she moved in with us in 2015, the pot came too, and now it greets guests at our gate.",
+      "A traditional Khmer betel set kept by my grandfather. He used it to prepare for his mother to eat. He would carefully prepare it for her before starting his work each morning. He bought the set at a market in Phnom Penh when he was a young man. After he passed away, my grandmother kept it on the family altar. The lacquer is scratched and the silver decoration has darkened with age, but we never polished it because the marks remind us of him and the care he had for his mother.  ",
     contributor: "Seng Chhaya",
     place: "Kampot Province",
-    image: "/photos/water-pot.jpg",
+    image: "/photos/betel.jpg",
     date: "August 2026",
   },
 ];
