@@ -10,6 +10,26 @@
 // ============================================================
 
 const entries = [
+     {
+    title: "Portrait of a young woman",
+    khmerName: "អនុស្សាវរីយ៍វ័យក្មេងរបស់លោកយាយ",
+    description:
+      "A painted portrait of my grandmother when she was a young woman in the 1980s. The portrait was made shortly after she married my grandfather and was hung above their bed in their first home together. Over the years, they moved the portrait with them to every house they lived in. The frame has become worn with age, but my family has kept it just as it is. Today, it hangs in our home as a reminder of my grandmother's younger years and the life she and my grandfather built together.",
+    contributor: "Roath Kimhong",
+    place: "Phnom Penh",
+    image: "/photos/portrait.png",
+    date: "August 2026",
+  },
+   {
+    title: "Carved Wooden Container",
+    khmerName: "ប្រអប់ឈេីឆ្លាក់",
+    description:
+      "A carved wooden container that belonged to my grandparents. They received it as a gift in the 1980s, and my grandmother used it to store her jewelry and old photographs. Although it is not very old, it has been moved with them to every house they have lived in. My grandparents have always loved it, and over the years, it has become a small reminder of the life they built together.",
+    contributor: "Prak Sophors",
+    place: "Phnom Penh",
+    image: "/photos/wood-container.png",
+    date: "August 2026",
+  },
   {
     title: "Grandmother's Krama",
     khmerName: "ក្រមារបស់លោកយាយ",
@@ -27,7 +47,7 @@ const entries = [
       "An old clay cooking pot and charcoal stove from my grandmother's home in Takeo. She used them to cook rice and soup for the family, especially during family gatherings like khmer new year. After years of use, the pot became worn and stained, but it was kept because it reminded the family of the simple meals and memories shared around the old cooking fire.",
     contributor: "Nou Vireak",
     place: "Takeo Province",
-    image: "/photos/clay.jpg",
+    image: "/photos/clay.avif ",
     date: "August 2026",
   },
   {
