@@ -30,17 +30,23 @@ const styles = {
 };
 
 // Client-side search over title, Khmer name, and story.
-// Empty query shows everything; no matches shows the empty state.
+// Empty query shows everything. A query that starts with a space shows
+// nothing until that space is removed. Real searches with no matches
+// show the friendly empty state below.
 export default function ArchiveSearch({ entries }) {
   const [query, setQuery] = useState("");
+  const leadingSpace = /^\s/.test(query);
   const search = query.trim().toLowerCase();
-  const results = search
-    ? entries.filter((entry) =>
-        [entry.title, entry.khmerName, entry.description].some(
-          (field) => field.toLowerCase().includes(search)
-        )
-      )
-    : entries;
+  const results =
+    query === ""
+      ? entries
+      : leadingSpace
+        ? []
+        : entries.filter((entry) =>
+            [entry.title, entry.khmerName, entry.description].some(
+              (field) => field.toLowerCase().includes(search)
+            )
+          );
   return (
     <>
       {/* ::placeholder and :focus need real CSS (inline styles can't reach
@@ -92,7 +98,9 @@ export default function ArchiveSearch({ entries }) {
           date={entry.date}
         />
       ))}
-      {results.length === 0 && <p style={styles.empty}>No entries found.</p>}
+      {results.length === 0 && query !== "" && !leadingSpace && (
+        <p style={styles.empty}>No objects match your search.</p>
+      )}
     </>
   );
 }

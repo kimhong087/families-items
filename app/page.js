@@ -91,7 +91,7 @@ export default function Home() {
 
         <ArchiveSearch entries={entries} />
 
-        <p style={styles.count}>entries in the archive: 5</p>
+        <p style={styles.count}>entries in the archive: {entries.length}</p>
 
         <footer style={styles.footer}>
           Built in ICT 340 — Vibe Coding, American University of Phnom Penh, Fall

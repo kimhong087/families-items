@@ -10,6 +10,16 @@
 // ============================================================
 
 const entries = [
+       {
+    title: "A Meaningful Coinbox",
+    khmerName: "ប្រអប់កាក់",
+    description:
+      "A small handwoven coin box that belonged to my grandmother. She had a simple hobby of saving coins in it, putting away a few whenever she had some left over. To other people, it might just look like an ordinary little box, but to our family, it means much more. After she passed away, we kept the box because it reminds us of her and the little habits that made her who she was. We no longer use it to save coins, but we keep it as a small piece of her that remains with us.",
+    contributor: "Sun Savuth",
+    place: "Phnom Penh",
+    image: "/photos/coin.png",
+    date: "August 2026",
+  },
      {
     title: "Portrait of a young woman",
     khmerName: "អនុស្សាវរីយ៍វ័យក្មេងរបស់លោកយាយ",
