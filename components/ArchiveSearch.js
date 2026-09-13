@@ -30,9 +30,9 @@ const styles = {
 };
 
 // Client-side search over title, Khmer name, and story.
-// Empty query shows everything. A query that starts with a space shows
-// nothing until that space is removed. Real searches with no matches
-// show the friendly empty state below.
+// Empty query shows everything. A query that starts with a space matches
+// nothing until that space is removed. Any non-empty query with no results
+// shows the friendly empty state below.
 export default function ArchiveSearch({ entries }) {
   const [query, setQuery] = useState("");
   const leadingSpace = /^\s/.test(query);
@@ -98,7 +98,7 @@ export default function ArchiveSearch({ entries }) {
           date={entry.date}
         />
       ))}
-      {results.length === 0 && query !== "" && !leadingSpace && (
+      {results.length === 0 && query !== "" && (
         <p style={styles.empty}>No objects match your search.</p>
       )}
     </>
