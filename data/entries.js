@@ -20,7 +20,7 @@ const entries = [
     image: "/photos/money.jpg",
     date: "August 2026",
   },
-    {
+    { 
     title: "Dad's Old Music Player",
     khmerName: "ម៉ាញ៉េរបស់ប៉ា",
     description:
