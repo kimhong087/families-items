@@ -1,0 +1,19 @@
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\maste\Documents\pnpm-lock.yaml as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\Users\maste\Documents\khmer-archive\families-items\package-lock.json
+
+⚠️  Node.js 20 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 22 or later. For more information, visit: https://github.com/orgs/supabase/discussions/45715
+ ⨯ TypeError: params.get is not a function
+    at LoginPage (app\login\page.js:86:25)
+  84 | export default async function LoginPage({ searchParams }) {
+  85 |   const params = await searchParams;
+> 86 |   const failed = params.get("error") !== null;
+     |                         ^
+  87 |
+  88 |   return (
+  89 |     <main style={styles.page}> {
+  digest: '2441963538'
+}

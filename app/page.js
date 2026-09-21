@@ -1,6 +1,8 @@
 import collection from "../collection.config.js";
 import ArchiveSearch from "../components/ArchiveSearch";
 import entries from "../data/entries.js";
+import { createClient } from "../lib/supabase/server";
+import { logout } from "./logout/actions";
 
 // Entry data lives in data/entries.js — add new objects there.
 
@@ -70,12 +72,65 @@ const styles = {
     lineHeight: 1.6,
     color: "#4A433B",
   },
+  authRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 12,
+    margin: "0 0 44px",
+  },
+  authEmail: {
+    fontSize: 14,
+    color: "#4A433B",
+    maxWidth: 200,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  authSeparator: { fontSize: 14, color: "#4A433B" },
+  authLink: { fontSize: 14, color: "#A8792C", fontWeight: 600 },
+  logoutButton: {
+    fontSize: 14,
+    color: "#A8792C",
+    fontWeight: 600,
+    backgroundColor: "transparent",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+  },
 };
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+
   return (
     <main style={styles.page}>
       <div style={styles.wrap}>
+        <div style={styles.authRow}>
+          {user ? (
+            <>
+              <span style={styles.authEmail}>{user.email}</span>
+              <form action={logout}>
+                <button type="submit" style={styles.logoutButton}>
+                  Log out
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <a href="/login" style={styles.authLink}>
+                Log in
+              </a>
+              <span style={styles.authSeparator}>·</span>
+              <a href="/signup" style={styles.authLink}>
+                Sign up
+              </a>
+            </>
+          )}
+        </div>
+
         <p style={styles.kicker}>KHMER LIVING ARCHIVE</p>
         <h1 style={styles.title}>{collection.name}</h1>
         <p style={styles.description}>{collection.description}</p>
