@@ -1,4 +1,5 @@
 import { login } from "./actions";
+import SubmitButton from "../../components/SubmitButton";
 
 const styles = {
   page: {
@@ -71,10 +72,8 @@ const styles = {
     fontSize: 15,
     fontWeight: 700,
     color: "#FFFCF7",
-    backgroundColor: "#8A5A23",
     border: "none",
     borderRadius: 10,
-    cursor: "pointer",
   },
   hint: { fontSize: 14, color: "#4A433B", textAlign: "center", margin: "16px 0 0" },
   link: { color: "#A8792C", fontWeight: 600 },
@@ -125,9 +124,9 @@ export default async function LoginPage({ searchParams }) {
             </p>
           )}
 
-          <button type="submit" style={styles.button}>
+          <SubmitButton style={styles.button} pendingText="Logging in...">
             Log in
-          </button>
+          </SubmitButton>
 
           <p style={styles.hint}>
             New to the archive?{" "}

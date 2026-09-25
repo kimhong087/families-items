@@ -1,0 +1,43 @@
+/* Interactive states for the auth submit buttons (login + signup).
+   The base look (padding, font, radius, color) stays inline in each page;
+   only the states that inline styles cannot express — :hover, :disabled,
+   and the spinner animation — live here. Class names are prefixed `auth-`
+   to avoid collisions. */
+
+.auth-submit {
+  cursor: pointer;
+  background-color: #8a5a23;
+  transition: background-color 0.15s ease;
+}
+
+.auth-submit:hover:not(:disabled) {
+  /* Slightly darker than the base #8a5a23 so hover is clearly visible. */
+  background-color: #6e4819;
+}
+
+.auth-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.auth-submit-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-spinner {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 252, 247, 0.35);
+  border-top-color: #fffcf7;
+  animation: auth-spin 0.7s linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
