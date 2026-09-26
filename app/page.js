@@ -1,10 +1,11 @@
 import collection from "../collection.config.js";
 import ArchiveSearch from "../components/ArchiveSearch";
-import entries from "../data/entries.js";
 import { createClient } from "../lib/supabase/server";
 import { logout } from "./logout/actions";
 
-// Entry data lives in data/entries.js — add new objects there.
+// Entries live in the Supabase "entries" table now. The cards and the search
+// load them in the browser (components/ArchiveSearch.js); this page only asks
+// Supabase for the total count. data/entries.js is kept for reference.
 
 const styles = {
   page: {
@@ -105,6 +106,13 @@ export default async function Home() {
   const { data } = await supabase.auth.getUser();
   const user = data.user;
 
+  // Total for the "entries in the archive" line. head: true asks Supabase
+  // for the count only (no rows). If this query fails, count is null and
+  // the line shows a dash instead of breaking the page.
+  const { count } = await supabase
+    .from("entries")
+    .select("*", { count: "exact", head: true });
+
   return (
     <main style={styles.page}>
       <div style={styles.wrap}>
@@ -144,9 +152,9 @@ export default async function Home() {
           <p style={styles.cardValue}>{collection.source}</p>
         </div>
 
-        <ArchiveSearch entries={entries} />
+        <ArchiveSearch />
 
-        <p style={styles.count}>entries in the archive: {entries.length}</p>
+        <p style={styles.count}>entries in the archive: {count ?? "—"}</p>
 
         <footer style={styles.footer}>
           Built in ICT 340 — Vibe Coding, American University of Phnom Penh, Fall
