@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import "./entry-card.css";
 
 const styles = {
-  card: { backgroundColor: "#FFFCF7", border: "2px solid #DDD3C3", borderRadius: 12, boxShadow: "0 2px 8px rgba(23, 20, 17, 0.06)", padding: 20, marginTop: 24 },
+  card: { backgroundColor: "#FFFCF7", border: "2px solid #DDD3C3", borderRadius: 12, boxShadow: "0 2px 8px rgba(23, 20, 17, 0.06)", padding: 20 },
   row: { display: "flex", flexWrap: "wrap", gap: 20 },
   photoBox: { flex: "1 1 38%",  minWidth: 220,
   backgroundColor: "#F5F0E6",
@@ -23,36 +25,38 @@ const styles = {
   value: { fontSize: 14, color: "#4A433B", margin: 0,},
 };
 
-export default function EntryCard({ title, khmerName, description, contributor, place, image, date }) {
+export default function EntryCard({ id, title, khmerName, description, contributor, place, image, date }) {
   const [broken, setBroken] = useState(false);
   return (
-    <article style={styles.card}>
-      <div style={styles.row}>
-        <div style={styles.photoBox}>
-          {image && !broken ? (
-            <img src={image} alt={title} style={styles.photo} onError={() => setBroken(true)} />
-          ) : (
-            <div style={styles.fallback}>photo coming soon</div>
-          )}
-        </div>
-        <div style={styles.info}>
-          <h3 style={styles.title}>{title}</h3>
-          <p style={styles.khmerName}>{khmerName}</p>
-          <p style={styles.description}>{description}</p>
-          <div style={styles.meta}>
-            <p style={styles.label}>Contributed by</p>
-            <p style={styles.value}>{contributor}</p>
-            <p style={styles.label}>From</p>
-            <p style={styles.value}>{place}</p>
-            {date && (
-              <>
-                <p style={styles.label}>Collected</p>
-                <p style={styles.value}>{date}</p>
-              </>
+    <Link href={`/entries/${id}`} className="entry-card-link">
+      <article className="entry-card" style={styles.card}>
+        <div style={styles.row}>
+          <div style={styles.photoBox}>
+            {image && !broken ? (
+              <img src={image} alt={title} style={styles.photo} onError={() => setBroken(true)} />
+            ) : (
+              <div style={styles.fallback}>photo coming soon</div>
             )}
           </div>
+          <div style={styles.info}>
+            <h3 style={styles.title}>{title}</h3>
+            <p style={styles.khmerName}>{khmerName}</p>
+            <p style={styles.description}>{description}</p>
+            <div style={styles.meta}>
+              <p style={styles.label}>Contributed by</p>
+              <p style={styles.value}>{contributor}</p>
+              <p style={styles.label}>From</p>
+              <p style={styles.value}>{place}</p>
+              {date && (
+                <>
+                  <p style={styles.label}>Collected</p>
+                  <p style={styles.value}>{date}</p>
+                </>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </Link>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import EntryCard from "./EntryCard";
+import Link from "next/link";
 import { createClient } from "../lib/supabase/client";
 
 const styles = {
@@ -27,6 +28,34 @@ const styles = {
     fontSize: 15,
     color: "#4A433B",
     textAlign: "center",
+  },
+  headerRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 24,
+  },
+  headerTitle: {
+    fontSize: 12,
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    color: "#A8792C",
+    margin: 0,
+    fontWeight: 700,
+  },
+  contributeLink: {
+    display: "inline-flex",
+    alignItems: "center",
+    padding: "12px 18px",
+    fontSize: 15,
+    fontWeight: 700,
+    color: "#FFFCF7",
+    backgroundColor: "#A8792C",
+    borderRadius: 10,
+    textDecoration: "none",
+    cursor: "pointer",
   },
 };
 
@@ -102,7 +131,19 @@ export default function ArchiveSearch() {
           outline-offset: 1px;
           border-color: #A8792C !important;
         }
+        .contribute-link { transition: background-color 0.15s ease; }
+        .contribute-link:hover { background-color: #8a5a23; }
+        .contribute-link:focus-visible {
+          outline: 3px solid rgba(168, 121, 44, 0.4);
+          outline-offset: 2px;
+        }
       `}</style>
+      <div style={styles.headerRow}>
+        <p style={styles.headerTitle}>Browse the archive</p>
+        <Link href="/contribute" className="contribute-link" style={styles.contributeLink}>
+          Contribute an Entry
+        </Link>
+      </div>
       <div style={styles.wrap}>
         <svg
           width="20"
@@ -143,6 +184,7 @@ export default function ArchiveSearch() {
         results.map((entry) => (
           <EntryCard
             key={entry.id}
+            id={entry.id}
             title={entry.title}
             khmerName={entry.khmerName}
             description={entry.description}
