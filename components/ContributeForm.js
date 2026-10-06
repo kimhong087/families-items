@@ -44,6 +44,15 @@ const styles = {
   field: { margin: "0 0 18px" },
   error: { margin: "6px 0 0", fontSize: 13, color: "#9C4A23" },
   hint: { margin: "6px 0 0", fontSize: 13, color: "#7E6E57" },
+  currentPhoto: {
+    display: "block",
+    width: 160,
+    maxHeight: 120,
+    objectFit: "cover",
+    borderRadius: 8,
+    border: "1px solid #DDD3C3",
+    marginBottom: 10,
+  },
   button: {
     display: "block",
     width: "100%",
@@ -67,21 +76,47 @@ const styles = {
   },
 };
 
-function validatePhoto(file) {
-  if (!file) return "A photo is required.";
+// `required` is false in edit mode, where keeping the existing photo is fine.
+function validatePhoto(file, required) {
+  if (!file) return required ? "A photo is required." : "";
   if (!ALLOWED_PHOTO_TYPES.has(file.type)) return "Photo must be JPG, PNG, or WebP.";
   if (file.size > MAX_PHOTO_BYTES) return "Photo must be 5 MB or smaller.";
   return "";
 }
 
-export default function ContributeForm() {
+// Uploads one photo to the "photos" bucket at <user-id>/<random-uuid>.<ext>
+// (the original filename is never used) and returns { path, url }, or null
+// when the upload fails.
+async function uploadPhoto(supabase, userId, file) {
+  const extension = PHOTO_EXTENSIONS[file.type] || "jpg";
+  const path = `${userId}/${crypto.randomUUID()}.${extension}`;
+
+  const { error } = await supabase.storage.from("photos").upload(path, file);
+  if (error) {
+    console.error("Photo upload failed:", error);
+    return null;
+  }
+
+  const { data } = supabase.storage.from("photos").getPublicUrl(path);
+  return { path, url: data.publicUrl };
+}
+
+// Shared entry form. mode "create" is used by /contribute. mode "edit" is
+// used by /entries/[id]/edit: it pre-fills the existing values (`initial`),
+// keeps the current photo unless a replacement is chosen, and updates only
+// the allowed columns.
+export default function ContributeForm({ mode = "create", entryId = null, initial = null }) {
   const router = useRouter();
+  const hasCurrentPhoto = Boolean(initial && initial.photo_url);
+  // In edit mode a photo is optional: an empty field keeps the current photo.
+  // In create mode (or when there is no photo to keep) it is required.
+  const photoRequired = mode !== "edit" || !hasCurrentPhoto;
   const [fields, setFields] = useState({
-    title: "",
-    khmer_name: "",
-    description: "",
-    place: "",
-    contributor: "",
+    title: initial?.title ?? "",
+    khmer_name: initial?.khmer_name ?? "",
+    description: initial?.description ?? "",
+    place: initial?.place ?? "",
+    contributor: initial?.contributor ?? "",
   });
   const [photo, setPhoto] = useState(null);
   const [errors, setErrors] = useState({});
@@ -96,7 +131,7 @@ export default function ContributeForm() {
   function handlePhotoChange(event) {
     const file = event.target.files?.[0] ?? null;
     setPhoto(file);
-    setErrors((prev) => ({ ...prev, photo: validatePhoto(file) }));
+    setErrors((prev) => ({ ...prev, photo: validatePhoto(file, photoRequired) }));
   }
 
   async function handleSubmit(event) {
@@ -104,7 +139,7 @@ export default function ContributeForm() {
     if (saving) return;
 
     const fieldErrors = validateEntry(fields);
-    const photoError = validatePhoto(photo);
+    const photoError = validatePhoto(photo, photoRequired);
     const allErrors = photoError ? { ...fieldErrors, photo: photoError } : fieldErrors;
 
     if (Object.keys(allErrors).length > 0) {
@@ -134,25 +169,54 @@ export default function ContributeForm() {
       const contributor = fields.contributor.trim();
       const place = fields.place.trim();
 
-      // Storage path is <user-id>/<random-uuid>.<extension>. The original
-      // filename is never used.
-      const extension = PHOTO_EXTENSIONS[photo.type] || "jpg";
-      const path = `${user.id}/${crypto.randomUUID()}.${extension}`;
+      if (mode === "edit") {
+        // Keep the current photo unless the user picked a replacement.
+        let photo_url = hasCurrentPhoto ? initial.photo_url : "";
+        let uploadedPath = null;
 
-      const { error: uploadError } = await supabase.storage
-        .from("photos")
-        .upload(path, photo);
+        if (photo) {
+          const uploaded = await uploadPhoto(supabase, user.id, photo);
+          if (!uploaded) {
+            setSubmitError("We could not upload your photo. Please try again.");
+            return;
+          }
+          uploadedPath = uploaded.path;
+          photo_url = uploaded.url;
+        }
 
-      if (uploadError) {
-        console.error("Photo upload failed:", uploadError);
-        setSubmitError("We could not upload your photo. Please try again.");
+        // Only the allowed columns are updated; id, created_at, and owner are
+        // never touched. The owner filter keeps the change scoped to the
+        // signed-in user's own row — RLS remains the real enforcement.
+        const { data: updated, error: updateError } = await supabase
+          .from("entries")
+          .update({ title, khmer_name, description, place, photo_url, contributor })
+          .eq("id", entryId)
+          .eq("owner", user.id)
+          .select();
+
+        if (updateError || !updated || updated.length === 0) {
+          console.error("Entry update failed:", updateError ?? updated);
+          if (uploadedPath) {
+            try {
+              await supabase.storage.from("photos").remove([uploadedPath]);
+            } catch (cleanupError) {
+              console.error("Orphaned photo cleanup failed:", cleanupError);
+            }
+          }
+          setSubmitError("That change wasn't saved");
+          return;
+        }
+
+        router.push(`/entries/${entryId}`);
         return;
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from("photos")
-        .getPublicUrl(path);
-      const photo_url = publicUrlData.publicUrl;
+      // Create mode: the photo is required here, so it is always set.
+      const uploaded = await uploadPhoto(supabase, user.id, photo);
+      if (!uploaded) {
+        setSubmitError("We could not upload your photo. Please try again.");
+        return;
+      }
 
       const { data: inserted, error: insertError } = await supabase
         .from("entries")
@@ -162,7 +226,7 @@ export default function ContributeForm() {
           khmer_name,
           description,
           place,
-          photo_url,
+          photo_url: uploaded.url,
           contributor,
         })
         .select("id")
@@ -171,7 +235,7 @@ export default function ContributeForm() {
       if (insertError || !inserted) {
         console.error("Entry insert failed:", insertError);
         try {
-          await supabase.storage.from("photos").remove([path]);
+          await supabase.storage.from("photos").remove([uploaded.path]);
         } catch (cleanupError) {
           console.error("Orphaned photo cleanup failed:", cleanupError);
         }
@@ -181,7 +245,7 @@ export default function ContributeForm() {
 
       router.push(`/entries/${inserted.id}`);
     } catch (err) {
-      console.error("Contribute submit failed:", err);
+      console.error("Entry form submit failed:", err);
       setSubmitError("Something went wrong. Please try again.");
     } finally {
       setSaving(false);
@@ -310,8 +374,15 @@ export default function ContributeForm() {
 
       <div style={styles.field}>
         <label htmlFor="photo" style={styles.label}>
-          Photo
+          {hasCurrentPhoto ? "Replace photo (optional)" : "Photo"}
         </label>
+        {hasCurrentPhoto && (
+          <img
+            src={initial.photo_url}
+            alt="Current photo"
+            style={styles.currentPhoto}
+          />
+        )}
         <input
           id="photo"
           name="photo"
@@ -322,7 +393,10 @@ export default function ContributeForm() {
           aria-invalid={Boolean(errors.photo)}
           aria-describedby={errors.photo ? "photo-error" : undefined}
         />
-        <p style={styles.hint}>JPG, PNG, or WebP, up to 5 MB.</p>
+        <p style={styles.hint}>
+          JPG, PNG, or WebP, up to 5 MB.
+          {hasCurrentPhoto && " Leave this empty to keep the current photo."}
+        </p>
         {errors.photo && (
           <p id="photo-error" style={styles.error}>
             {errors.photo}
@@ -335,7 +409,7 @@ export default function ContributeForm() {
         disabled={saving}
         style={saving ? { ...styles.button, opacity: 0.7, cursor: "not-allowed" } : styles.button}
       >
-        {saving ? "Saving..." : "Submit entry"}
+        {saving ? "Saving..." : mode === "edit" ? "Save changes" : "Submit entry"}
       </button>
     </form>
   );

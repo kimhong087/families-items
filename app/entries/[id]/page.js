@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import DeleteEntryButton from "../../../components/DeleteEntryButton";
 import { createClient } from "../../../lib/supabase/server";
 
 // Minimal entry detail page. It is the redirect target after a successful
@@ -36,6 +38,24 @@ const styles = {
   },
   label: { fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: "#A8792C", margin: 0, fontWeight: 700 },
   value: { fontSize: 15, color: "#4A433B", margin: 0 },
+  actions: {
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 28,
+  },
+  editButton: {
+    padding: "10px 16px",
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#FFFCF7",
+    backgroundColor: "#A8792C",
+    border: "none",
+    borderRadius: 10,
+    textDecoration: "none",
+    cursor: "pointer",
+  },
 };
 
 export default async function EntryPage({ params }) {
@@ -52,8 +72,23 @@ export default async function EntryPage({ params }) {
     notFound();
   }
 
+  // Owner-only tools: compare the signed-in user's id with the row's owner
+  // column. Hiding the buttons is only a UI convenience — RLS is what
+  // actually stops other users from changing or deleting this row.
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData?.user ?? null;
+  const isOwner = Boolean(user && user.id === entry.owner);
+
   return (
     <main style={styles.page}>
+      <style>{`
+        .entry-action-link { transition: background-color 0.15s ease; }
+        .entry-action-link:hover { background-color: #8a5a23; }
+        .entry-action-link:focus-visible {
+          outline: 3px solid rgba(168, 121, 44, 0.4);
+          outline-offset: 2px;
+        }
+      `}</style>
       <div style={styles.wrap}>
         <a href="/" style={styles.back}>
           ← Back to the archive
@@ -70,6 +105,19 @@ export default async function EntryPage({ params }) {
           <p style={styles.label}>From</p>
           <p style={styles.value}>{entry.place}</p>
         </div>
+
+        {isOwner && (
+          <div style={styles.actions}>
+            <Link
+              href={`/entries/${entry.id}/edit`}
+              className="entry-action-link"
+              style={styles.editButton}
+            >
+              Edit
+            </Link>
+            <DeleteEntryButton entryId={entry.id} />
+          </div>
+        )}
       </div>
     </main>
   );
