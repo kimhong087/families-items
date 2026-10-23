@@ -19,7 +19,7 @@ const styles = {
   info: { flex: "1 1 55%", minWidth: 260 },
   title: { fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 21, fontWeight: 700, color: "#171411", lineHeight: 1.25, margin: "0 0 2px" },
   khmerName: { fontSize: 15, color: "#A8792C", margin: "0 0 12px", fontWeight: 500 },
-  description: { fontSize: 15, lineHeight: 1.65, color: "#4A433B", margin: "0 0 16px" },
+  description: { fontSize: 15, lineHeight: 1.65, color: "#4A433B", margin: "0 0 16px", overflowWrap: "anywhere" },
   meta: { display: "grid", gridTemplateColumns: "112px 1fr", columnGap: 12, rowGap: 4, borderTop: "1px solid #DDD3C3", paddingTop: 14 },
   label: { fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: "#A8792C", margin: 0, fontWeight: 700},
   value: { fontSize: 14, color: "#4A433B", margin: 0,},
