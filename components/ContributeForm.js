@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase/client";
 import { PLACES } from "../lib/places";
@@ -74,6 +74,15 @@ const styles = {
     fontSize: 14,
     color: "#9C4A23",
   },
+  submitSuccess: {
+    margin: "0 0 18px",
+    padding: "10px 12px",
+    backgroundColor: "#D4EDDA",
+    border: "1px solid #C3E6CB",
+    borderRadius: 8,
+    fontSize: 14,
+    color: "#155724",
+  },
 };
 
 // `required` is false in edit mode, where keeping the existing photo is fine.
@@ -107,6 +116,7 @@ async function uploadPhoto(supabase, userId, file) {
 // the allowed columns.
 export default function ContributeForm({ mode = "create", entryId = null, initial = null }) {
   const router = useRouter();
+  const photoInputRef = useRef(null);
   const hasCurrentPhoto = Boolean(initial && initial.photo_url);
   // In edit mode a photo is optional: an empty field keeps the current photo.
   // In create mode (or when there is no photo to keep) it is required.
@@ -121,6 +131,7 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
   const [photo, setPhoto] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [submitSuccess, setSubmitSuccess] = useState("");
   const [saving, setSaving] = useState(false);
 
   function handleTextChange(event) {
@@ -151,6 +162,7 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
 
     setErrors({});
     setSubmitError("");
+    setSubmitSuccess("");
     setSaving(true);
 
     try {
@@ -184,12 +196,34 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
           photo_url = uploaded.url;
         }
 
+        // Check if the user is a reviewer
+        const { data: isReviewerData, error: reviewerError } = await supabase
+          .rpc("is_reviewer");
+        
+        const isReviewer = !reviewerError && isReviewerData === true;
+
+        // Prepare update data
+        const updateData = { 
+          title, 
+          khmer_name, 
+          description, 
+          place, 
+          photo_url, 
+          contributor 
+        };
+
+        // If user is not a reviewer, set status to 'pending'
+        if (!isReviewer) {
+          updateData.status = 'pending';
+        }
+        // If user is a reviewer, the status will be preserved (not included in update)
+
         // Only the allowed columns are updated; id, created_at, and owner are
         // never touched. The owner filter keeps the change scoped to the
         // signed-in user's own row — RLS remains the real enforcement.
         const { data: updated, error: updateError } = await supabase
           .from("entries")
-          .update({ title, khmer_name, description, place, photo_url, contributor })
+          .update(updateData)
           .eq("id", entryId)
           .eq("owner", user.id)
           .select();
@@ -243,7 +277,20 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
         return;
       }
 
-      router.push(`/entries/${inserted.id}`);
+      // Show success message instead of redirecting
+      setSubmitSuccess("Thank you for your contribution! Your entry is waiting for review.");
+      // Reset form for another contribution if desired
+      setFields({
+        title: "",
+        khmer_name: "",
+        description: "",
+        place: "",
+        contributor: "",
+      });
+      setPhoto(null);
+      if (photoInputRef.current) {
+        photoInputRef.current.value = "";
+      }
     } catch (err) {
       console.error("Entry form submit failed:", err);
       setSubmitError("Something went wrong. Please try again.");
@@ -257,6 +304,11 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
       {submitError && (
         <p role="alert" style={styles.submitError}>
           {submitError}
+        </p>
+      )}
+      {submitSuccess && (
+        <p role="status" style={styles.submitSuccess}>
+          {submitSuccess}
         </p>
       )}
 
@@ -389,6 +441,7 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
           type="file"
           accept="image/jpeg,image/png,image/webp"
           onChange={handlePhotoChange}
+          ref={photoInputRef}
           style={styles.control}
           aria-invalid={Boolean(errors.photo)}
           aria-describedby={errors.photo ? "photo-error" : undefined}

@@ -73,6 +73,11 @@ export default async function EditEntryPage({ params }) {
   const { data: authData } = await supabase.auth.getUser();
   const user = authData?.user ?? null;
   const isOwner = Boolean(user && user.id === entry.owner);
+  
+  // Allow owners to edit their entries regardless of status
+  if (!isOwner) {
+    notFound();
+  }
 
   return (
     <main style={styles.page}>

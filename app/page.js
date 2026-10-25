@@ -111,7 +111,8 @@ export default async function Home() {
   // the line shows a dash instead of breaking the page.
   const { count } = await supabase
     .from("entries")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .eq("status", "published");
 
   return (
     <main style={styles.page}>
@@ -120,6 +121,11 @@ export default async function Home() {
           {user ? (
             <>
               <span style={styles.authEmail}>{user.email}</span>
+              <span style={styles.authSeparator}>·</span>
+              <a href="/my-entries" style={styles.authLink}>
+                My entries
+              </a>
+              <span style={styles.authSeparator}>·</span>
               <form action={logout}>
                 <button type="submit" style={styles.logoutButton}>
                   Log out

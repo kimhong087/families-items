@@ -72,11 +72,18 @@ export default async function EntryPage({ params }) {
     notFound();
   }
 
+  // Check if user is logged in to see their own non-published entries
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData?.user ?? null;
+  
+  // If entry is not published and user is not the owner, show not found
+  if (entry.status !== 'published' && (!user || user.id !== entry.owner)) {
+    notFound();
+  }
+
   // Owner-only tools: compare the signed-in user's id with the row's owner
   // column. Hiding the buttons is only a UI convenience — RLS is what
   // actually stops other users from changing or deleting this row.
-  const { data: authData } = await supabase.auth.getUser();
-  const user = authData?.user ?? null;
   const isOwner = Boolean(user && user.id === entry.owner);
 
   return (
