@@ -1,125 +1,29 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "../lib/supabase/client";
 import { PLACES } from "../lib/places";
 import { validateEntry } from "../lib/validateEntry";
+import { validatePhoto } from "../lib/photo";
+import { submitEntry } from "../lib/entrySubmit";
+import FormField from "./FormField";
+import FormTips from "./FormTips";
+import PhotoDropzone from "./PhotoDropzone";
+import "./form.css";
 
-const ALLOWED_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
+const EMPTY = { title: "", khmer_name: "", description: "", place: "", contributor: "" };
 
-// The storage extension is derived from the validated MIME type, never from
-// the original filename.
-const PHOTO_EXTENSIONS = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
-const control = {
-  display: "block",
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "11px 14px",
-  fontSize: 15,
-  color: "#171411",
-  backgroundColor: "#F3EBDB",
-  border: "2px solid #C3B18E",
-  borderRadius: 10,
-};
-
-const styles = {
-  label: {
-    display: "block",
-    fontSize: 11,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-    fontWeight: 700,
-    color: "#A8792C",
-    margin: "0 0 6px",
-  },
-  control,
-  textarea: { ...control, minHeight: 140, resize: "vertical", fontFamily: "inherit" },
-  field: { margin: "0 0 18px" },
-  error: { margin: "6px 0 0", fontSize: 13, color: "#9C4A23" },
-  hint: { margin: "6px 0 0", fontSize: 13, color: "#7E6E57" },
-  currentPhoto: {
-    display: "block",
-    width: 160,
-    maxHeight: 120,
-    objectFit: "cover",
-    borderRadius: 8,
-    border: "1px solid #DDD3C3",
-    marginBottom: 10,
-  },
-  button: {
-    display: "block",
-    width: "100%",
-    padding: "12px",
-    fontSize: 15,
-    fontWeight: 700,
-    color: "#FFFCF7",
-    backgroundColor: "#8a5a23",
-    border: "none",
-    borderRadius: 10,
-    cursor: "pointer",
-  },
-  submitError: {
-    margin: "0 0 18px",
-    padding: "10px 12px",
-    backgroundColor: "#F9E9DF",
-    border: "1px solid #E5C4A8",
-    borderRadius: 8,
-    fontSize: 14,
-    color: "#9C4A23",
-  },
-  submitSuccess: {
-    margin: "0 0 18px",
-    padding: "10px 12px",
-    backgroundColor: "#D4EDDA",
-    border: "1px solid #C3E6CB",
-    borderRadius: 8,
-    fontSize: 14,
-    color: "#155724",
-  },
-};
-
-// `required` is false in edit mode, where keeping the existing photo is fine.
-function validatePhoto(file, required) {
-  if (!file) return required ? "A photo is required." : "";
-  if (!ALLOWED_PHOTO_TYPES.has(file.type)) return "Photo must be JPG, PNG, or WebP.";
-  if (file.size > MAX_PHOTO_BYTES) return "Photo must be 5 MB or smaller.";
-  return "";
-}
-
-// Uploads one photo to the "photos" bucket at <user-id>/<random-uuid>.<ext>
-// (the original filename is never used) and returns { path, url }, or null
-// when the upload fails.
-async function uploadPhoto(supabase, userId, file) {
-  const extension = PHOTO_EXTENSIONS[file.type] || "jpg";
-  const path = `${userId}/${crypto.randomUUID()}.${extension}`;
-
-  const { error } = await supabase.storage.from("photos").upload(path, file);
-  if (error) {
-    console.error("Photo upload failed:", error);
-    return null;
-  }
-
-  const { data } = supabase.storage.from("photos").getPublicUrl(path);
-  return { path, url: data.publicUrl };
-}
-
-// Shared entry form. mode "create" is used by /contribute. mode "edit" is
-// used by /entries/[id]/edit: it pre-fills the existing values (`initial`),
-// keeps the current photo unless a replacement is chosen, and updates only
-// the allowed columns.
+// Shared entry form. mode "create" is used by /contribute. mode "edit" is used
+// by /entries/[id]/edit: it pre-fills the existing values (`initial`), keeps
+// the current photo unless a replacement is chosen, and updates only the
+// allowed columns. Validation and saving are unchanged (lib/validateEntry.js,
+// lib/photo.js, lib/entrySubmit.js); this file only handles form state + UI.
 export default function ContributeForm({ mode = "create", entryId = null, initial = null }) {
   const router = useRouter();
   const photoInputRef = useRef(null);
   const hasCurrentPhoto = Boolean(initial && initial.photo_url);
   // In edit mode a photo is optional: an empty field keeps the current photo.
-  // In create mode (or when there is no photo to keep) it is required.
   const photoRequired = mode !== "edit" || !hasCurrentPhoto;
   const [fields, setFields] = useState({
     title: initial?.title ?? "",
@@ -139,8 +43,7 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
     setFields((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handlePhotoChange(event) {
-    const file = event.target.files?.[0] ?? null;
+  function handlePhoto(file) {
     setPhoto(file);
     setErrors((prev) => ({ ...prev, photo: validatePhoto(file, photoRequired) }));
   }
@@ -152,7 +55,6 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
     const fieldErrors = validateEntry(fields);
     const photoError = validatePhoto(photo, photoRequired);
     const allErrors = photoError ? { ...fieldErrors, photo: photoError } : fieldErrors;
-
     if (Object.keys(allErrors).length > 0) {
       // Nothing is uploaded or saved until validation passes.
       setErrors(allErrors);
@@ -164,306 +66,68 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
     setSubmitError("");
     setSubmitSuccess("");
     setSaving(true);
+    const result = await submitEntry({ mode, entryId, initial, fields, photo });
+    setSaving(false);
 
-    try {
-      const supabase = createClient();
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      if (authError || !authData.user) {
-        setSubmitError("Your session has expired. Please log in again.");
-        return;
-      }
-      const user = authData.user;
-
-      // Trim every text field before saving.
-      const title = fields.title.trim();
-      const khmer_name = fields.khmer_name.trim();
-      const description = fields.description.trim();
-      const contributor = fields.contributor.trim();
-      const place = fields.place.trim();
-
-      if (mode === "edit") {
-        // Keep the current photo unless the user picked a replacement.
-        let photo_url = hasCurrentPhoto ? initial.photo_url : "";
-        let uploadedPath = null;
-
-        if (photo) {
-          const uploaded = await uploadPhoto(supabase, user.id, photo);
-          if (!uploaded) {
-            setSubmitError("We could not upload your photo. Please try again.");
-            return;
-          }
-          uploadedPath = uploaded.path;
-          photo_url = uploaded.url;
-        }
-
-        // Check if the user is a reviewer
-        const { data: isReviewerData, error: reviewerError } = await supabase
-          .rpc("is_reviewer");
-        
-        const isReviewer = !reviewerError && isReviewerData === true;
-
-        // Prepare update data
-        const updateData = { 
-          title, 
-          khmer_name, 
-          description, 
-          place, 
-          photo_url, 
-          contributor 
-        };
-
-        // If user is not a reviewer, set status to 'pending'
-        if (!isReviewer) {
-          updateData.status = 'pending';
-        }
-        // If user is a reviewer, the status will be preserved (not included in update)
-
-        // Only the allowed columns are updated; id, created_at, and owner are
-        // never touched. The owner filter keeps the change scoped to the
-        // signed-in user's own row — RLS remains the real enforcement.
-        const { data: updated, error: updateError } = await supabase
-          .from("entries")
-          .update(updateData)
-          .eq("id", entryId)
-          .eq("owner", user.id)
-          .select();
-
-        if (updateError || !updated || updated.length === 0) {
-          console.error("Entry update failed:", updateError ?? updated);
-          if (uploadedPath) {
-            try {
-              await supabase.storage.from("photos").remove([uploadedPath]);
-            } catch (cleanupError) {
-              console.error("Orphaned photo cleanup failed:", cleanupError);
-            }
-          }
-          setSubmitError("That change wasn't saved");
-          return;
-        }
-
-        router.push(`/entries/${entryId}`);
-        return;
-      }
-
-      // Create mode: the photo is required here, so it is always set.
-      const uploaded = await uploadPhoto(supabase, user.id, photo);
-      if (!uploaded) {
-        setSubmitError("We could not upload your photo. Please try again.");
-        return;
-      }
-
-      const { data: inserted, error: insertError } = await supabase
-        .from("entries")
-        .insert({
-          owner: user.id,
-          title,
-          khmer_name,
-          description,
-          place,
-          photo_url: uploaded.url,
-          contributor,
-        })
-        .select("id")
-        .single();
-
-      if (insertError || !inserted) {
-        console.error("Entry insert failed:", insertError);
-        try {
-          await supabase.storage.from("photos").remove([uploaded.path]);
-        } catch (cleanupError) {
-          console.error("Orphaned photo cleanup failed:", cleanupError);
-        }
-        setSubmitError("We could not save your entry. Please try again.");
-        return;
-      }
-
-      // Show success message instead of redirecting
-      setSubmitSuccess("Thank you for your contribution! Your entry is waiting for review.");
-      // Reset form for another contribution if desired
-      setFields({
-        title: "",
-        khmer_name: "",
-        description: "",
-        place: "",
-        contributor: "",
-      });
-      setPhoto(null);
-      if (photoInputRef.current) {
-        photoInputRef.current.value = "";
-      }
-    } catch (err) {
-      console.error("Entry form submit failed:", err);
-      setSubmitError("Something went wrong. Please try again.");
-    } finally {
-      setSaving(false);
+    if (!result.ok) {
+      setSubmitError(result.message);
+      return;
     }
+    if (result.mode === "edit") {
+      router.push(`/entries/${result.id}`);
+      return;
+    }
+    // Create: stay on the page, show the pending-review message, reset the form.
+    setSubmitSuccess("Thank you for your contribution! Your entry is waiting for review.");
+    setFields(EMPTY);
+    setPhoto(null);
+    if (photoInputRef.current) photoInputRef.current.value = "";
   }
+
+  const field = (name) => ({ value: fields[name], onChange: handleTextChange, error: errors[name] });
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {submitError && (
-        <p role="alert" style={styles.submitError}>
-          {submitError}
-        </p>
-      )}
+      {submitError && <p role="alert" className="notice notice-error form-notice">{submitError}</p>}
       {submitSuccess && (
-        <p role="status" style={styles.submitSuccess}>
-          {submitSuccess}
+        <p role="status" className="notice notice-success form-notice">
+          {submitSuccess} <Link href="/my-entries">Track it in My entries</Link>
         </p>
       )}
-
-      <div style={styles.field}>
-        <label htmlFor="title" style={styles.label}>
-          Title
-        </label>
-        <input
-          id="title"
-          name="title"
-          type="text"
-          value={fields.title}
-          onChange={handleTextChange}
-          style={styles.control}
-          aria-invalid={Boolean(errors.title)}
-          aria-describedby={errors.title ? "title-error" : undefined}
-        />
-        {errors.title && (
-          <p id="title-error" style={styles.error}>
-            {errors.title}
-          </p>
-        )}
-      </div>
-
-      <div style={styles.field}>
-        <label htmlFor="khmer_name" style={styles.label}>
-          Khmer name
-        </label>
-        <input
-          id="khmer_name"
-          name="khmer_name"
-          type="text"
-          value={fields.khmer_name}
-          onChange={handleTextChange}
-          style={styles.control}
-          aria-invalid={Boolean(errors.khmer_name)}
-          aria-describedby={errors.khmer_name ? "khmer-name-error" : undefined}
-        />
-        {errors.khmer_name && (
-          <p id="khmer-name-error" style={styles.error}>
-            {errors.khmer_name}
-          </p>
-        )}
-      </div>
-
-      <div style={styles.field}>
-        <label htmlFor="description" style={styles.label}>
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          rows={6}
-          value={fields.description}
-          onChange={handleTextChange}
-          style={styles.textarea}
-          aria-invalid={Boolean(errors.description)}
-          aria-describedby={errors.description ? "description-error" : undefined}
-        />
-        <p style={styles.hint}>At least 100 characters.</p>
-        {errors.description && (
-          <p id="description-error" style={styles.error}>
-            {errors.description}
-          </p>
-        )}
-      </div>
-
-      <div style={styles.field}>
-        <label htmlFor="place" style={styles.label}>
-          Place
-        </label>
-        <select
-          id="place"
-          name="place"
-          value={fields.place}
-          onChange={handleTextChange}
-          style={styles.control}
-          aria-invalid={Boolean(errors.place)}
-          aria-describedby={errors.place ? "place-error" : undefined}
-        >
-          <option value="">Select a place</option>
-          {PLACES.map((place) => (
-            <option key={place} value={place}>
-              {place}
-            </option>
-          ))}
-        </select>
-        {errors.place && (
-          <p id="place-error" style={styles.error}>
-            {errors.place}
-          </p>
-        )}
-      </div>
-
-      <div style={styles.field}>
-        <label htmlFor="contributor" style={styles.label}>
-          Contributor
-        </label>
-        <input
-          id="contributor"
-          name="contributor"
-          type="text"
-          value={fields.contributor}
-          onChange={handleTextChange}
-          style={styles.control}
-          aria-invalid={Boolean(errors.contributor)}
-          aria-describedby={errors.contributor ? "contributor-error" : undefined}
-        />
-        {errors.contributor && (
-          <p id="contributor-error" style={styles.error}>
-            {errors.contributor}
-          </p>
-        )}
-      </div>
-
-      <div style={styles.field}>
-        <label htmlFor="photo" style={styles.label}>
-          {hasCurrentPhoto ? "Replace photo (optional)" : "Photo"}
-        </label>
-        {hasCurrentPhoto && (
-          <img
-            src={initial.photo_url}
-            alt="Current photo"
-            style={styles.currentPhoto}
+      <div className="form-columns">
+        <div>
+          <div className="field-row">
+            <FormField id="title" label="Title (English)" required placeholder="e.g. Grandma's Hidden Riels" {...field("title")} />
+            <FormField id="khmer_name" label="Title (Khmer)" required lang="km" placeholder="ឧ. លុយរៀលរបស់លោកយាយ" {...field("khmer_name")} />
+          </div>
+          <FormField id="description" label="Description / Story" required as="textarea" rows={6} placeholder="Tell the story behind this item…" hint="At least 100 characters." {...field("description")} />
+          <div className="field-row">
+            <FormField id="place" label="Place of origin" required as="select" {...field("place")}>
+              <option value="">Select a place</option>
+              {PLACES.map((place) => (
+                <option key={place} value={place}>{place}</option>
+              ))}
+            </FormField>
+            <FormField id="contributor" label="Contributor" required placeholder="Your name" {...field("contributor")} />
+          </div>
+        </div>
+        <div>
+          <PhotoDropzone
+            inputRef={photoInputRef}
+            file={photo}
+            onFile={handlePhoto}
+            error={errors.photo}
+            currentUrl={hasCurrentPhoto ? initial.photo_url : null}
+            required={photoRequired}
           />
-        )}
-        <input
-          id="photo"
-          name="photo"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handlePhotoChange}
-          ref={photoInputRef}
-          style={styles.control}
-          aria-invalid={Boolean(errors.photo)}
-          aria-describedby={errors.photo ? "photo-error" : undefined}
-        />
-        <p style={styles.hint}>
-          JPG, PNG, or WebP, up to 5 MB.
-          {hasCurrentPhoto && " Leave this empty to keep the current photo."}
-        </p>
-        {errors.photo && (
-          <p id="photo-error" style={styles.error}>
-            {errors.photo}
-          </p>
-        )}
+          <FormTips />
+        </div>
       </div>
-
-      <button
-        type="submit"
-        disabled={saving}
-        style={saving ? { ...styles.button, opacity: 0.7, cursor: "not-allowed" } : styles.button}
-      >
-        {saving ? "Saving..." : mode === "edit" ? "Save changes" : "Submit entry"}
-      </button>
+      <div className="form-submit">
+        <button type="submit" className="btn btn-primary" disabled={saving}>
+          {saving ? "Saving..." : mode === "edit" ? "Save changes" : "Submit entry"}
+        </button>
+      </div>
     </form>
   );
 }

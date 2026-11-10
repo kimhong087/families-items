@@ -1,63 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import collection from "../../../collection.config.js";
 import DeleteEntryButton from "../../../components/DeleteEntryButton";
+import { LotusSpray } from "../../../components/Lotus";
+import MetaRow from "../../../components/MetaRow";
+import PageShell from "../../../components/PageShell";
+import StatusBadge from "../../../components/StatusBadge";
+import { formatDate } from "../../../lib/formatDate";
 import { createClient } from "../../../lib/supabase/server";
+import "../../../components/detail.css";
 
-// Minimal entry detail page. It is the redirect target after a successful
-// contribution: the form navigates to /entries/{newly-inserted-id}, and this
-// page loads that single row by id.
-const styles = {
-  page: {
-    minHeight: "100vh",
-    backgroundColor: "#F5F0E6",
-  },
-  wrap: {
-    maxWidth: 720,
-    margin: "0 auto",
-    padding: "48px 24px 80px",
-  },
-  back: { display: "inline-block", marginBottom: 24, fontSize: 14, color: "#A8792C", textDecoration: "none" },
-  title: {
-    fontFamily: "Georgia, 'Times New Roman', serif",
-    fontSize: 34,
-    fontWeight: 700,
-    color: "#171411",
-    margin: "0 0 6px",
-    lineHeight: 1.2,
-  },
-  khmerName: { fontSize: 16, color: "#A8792C", margin: "0 0 20px", fontWeight: 500 },
-  photo: { display: "block", width: "100%", maxHeight: 420, objectFit: "contain", borderRadius: 12, backgroundColor: "#F3EBDB", border: "1px solid #DDD3C3" },
-  description: { fontSize: 16, lineHeight: 1.7, color: "#4A433B", margin: "20px 0", whiteSpace: "pre-wrap" },
-  meta: {
-    display: "grid",
-    gridTemplateColumns: "140px 1fr",
-    columnGap: 12,
-    rowGap: 6,
-    borderTop: "1px solid #DDD3C3",
-    paddingTop: 16,
-  },
-  label: { fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: "#A8792C", margin: 0, fontWeight: 700 },
-  value: { fontSize: 15, color: "#4A433B", margin: 0 },
-  actions: {
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 28,
-  },
-  editButton: {
-    padding: "10px 16px",
-    fontSize: 14,
-    fontWeight: 700,
-    color: "#FFFCF7",
-    backgroundColor: "#A8792C",
-    border: "none",
-    borderRadius: 10,
-    textDecoration: "none",
-    cursor: "pointer",
-  },
-};
-
+// Entry detail page. It is also the redirect target after a successful edit.
+// Only real entries columns are shown: title, khmer_name, photo_url,
+// description, contributor, place, created_at. "Source" is the archive-level
+// source from collection.config.js (the table has no per-entry source).
 export default async function EntryPage({ params }) {
   const { id } = await params;
 
@@ -72,60 +28,72 @@ export default async function EntryPage({ params }) {
     notFound();
   }
 
-  // Check if user is logged in to see their own non-published entries
+  // Non-published entries are visible only to their owner.
   const { data: authData } = await supabase.auth.getUser();
   const user = authData?.user ?? null;
-  
-  // If entry is not published and user is not the owner, show not found
-  if (entry.status !== 'published' && (!user || user.id !== entry.owner)) {
+  if (entry.status !== "published" && (!user || user.id !== entry.owner)) {
     notFound();
   }
 
-  // Owner-only tools: compare the signed-in user's id with the row's owner
-  // column. Hiding the buttons is only a UI convenience — RLS is what
+  // Owner-only tools. Hiding the buttons is only a UI convenience; RLS is what
   // actually stops other users from changing or deleting this row.
   const isOwner = Boolean(user && user.id === entry.owner);
 
   return (
-    <main style={styles.page}>
-      <style>{`
-        .entry-action-link { transition: background-color 0.15s ease; }
-        .entry-action-link:hover { background-color: #8a5a23; }
-        .entry-action-link:focus-visible {
-          outline: 3px solid rgba(168, 121, 44, 0.4);
-          outline-offset: 2px;
-        }
-      `}</style>
-      <div style={styles.wrap}>
-        <a href="/" style={styles.back}>
-          ← Back to the archive
-        </a>
-        <h1 style={styles.title}>{entry.title}</h1>
-        <p style={styles.khmerName}>{entry.khmer_name}</p>
-        {entry.photo_url && (
-          <img src={entry.photo_url} alt={entry.title} style={styles.photo} />
-        )}
-        <p style={styles.description}>{entry.description}</p>
-        <div style={styles.meta}>
-          <p style={styles.label}>Contributed by</p>
-          <p style={styles.value}>{entry.contributor}</p>
-          <p style={styles.label}>From</p>
-          <p style={styles.value}>{entry.place}</p>
-        </div>
+    <PageShell>
+      <article className="detail">
+        <LotusSpray className="detail-lotus" />
+        <div className="container">
+          <Link href="/" className="back-link">← Back to archive</Link>
 
-        {isOwner && (
-          <div style={styles.actions}>
-            <Link
-              href={`/entries/${entry.id}/edit`}
-              className="entry-action-link"
-              style={styles.editButton}
-            >
-              Edit
-            </Link>
-            <DeleteEntryButton entryId={entry.id} />
+          <div className="detail-grid">
+            <div className="detail-photo">
+              <div className="detail-photo-frame">
+                {entry.photo_url && <img src={entry.photo_url} alt={entry.title} />}
+              </div>
+            </div>
+
+            <div>
+              <h1 className="detail-title">{entry.title}</h1>
+              <p className="detail-khmer">{entry.khmer_name}</p>
+              {entry.status !== "published" && (
+                <div className="detail-status"><StatusBadge status={entry.status} /></div>
+              )}
+
+              <div className="meta-list">
+                <MetaRow label="Contributed by" icon={<><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" /></>}>
+                  {entry.contributor}
+                </MetaRow>
+                <MetaRow label="Place of origin" icon={<><path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" /><circle cx="12" cy="10" r="2.5" /></>}>
+                  {entry.place}
+                </MetaRow>
+                {entry.created_at && (
+                  <MetaRow label="Date added" icon={<><rect x="4" y="5" width="16" height="16" rx="2" /><path d="M4 10h16M9 3v4M15 3v4" /></>}>
+                    {formatDate(entry.created_at, true)}
+                  </MetaRow>
+                )}
+                <MetaRow label="Source" icon={<><path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4Z" /><path d="M9 9h6M9 13h6" /></>}>
+                  {collection.source}
+                </MetaRow>
+              </div>
+
+              <p className="detail-story">{entry.description}</p>
+
+              {isOwner && (
+                <div className="detail-actions">
+                  <Link href={`/entries/${entry.id}/edit`} className="btn btn-primary">Edit</Link>
+                  <DeleteEntryButton entryId={entry.id} />
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </main>
+
+          <div className="detail-quote">
+            <p>“Small objects can hold big memories.”</p>
+            <hr />
+          </div>
+        </div>
+      </article>
+    </PageShell>
   );
 }

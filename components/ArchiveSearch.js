@@ -1,78 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import EntryCard from "./EntryCard";
 import Link from "next/link";
 import { createClient } from "../lib/supabase/client";
+import Hero from "./Hero";
+import SearchBar from "./SearchBar";
+import ArchiveGrid from "./ArchiveGrid";
 
-const styles = {
-  wrap: { position: "relative", marginTop: 32 },
-  icon: { position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" },
-  input: {
-    width: "100%",
-    boxSizing: "border-box",
-    padding: "16px 16px 16px 48px",
-    fontSize: 16,
-    color: "#171411",
-    backgroundColor: "#F3EBDB",
-    border: "2px solid #C3B18E",
-    borderRadius: 12,
-    boxShadow: "0 2px 6px rgba(23, 20, 17, 0.05)",
-  },
-  empty: {
-    marginTop: 24,
-    padding: 24,
-    backgroundColor: "#FFFCF7",
-    border: "1px solid #DDD3C3",
-    borderRadius: 12,
-    fontSize: 15,
-    color: "#4A433B",
-    textAlign: "center",
-  },
-  headerRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 24,
-  },
-  headerTitle: {
-    fontSize: 12,
-    letterSpacing: 2,
-    textTransform: "uppercase",
-    color: "#A8792C",
-    margin: 0,
-    fontWeight: 700,
-  },
-  contributeLink: {
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "12px 18px",
-    fontSize: 15,
-    fontWeight: 700,
-    color: "#FFFCF7",
-    backgroundColor: "#A8792C",
-    borderRadius: 10,
-    textDecoration: "none",
-    cursor: "pointer",
-  },
-};
+const PAGE_SIZE = 9;
 
-// Entries load from the Supabase "entries" table in the browser via
-// lib/supabase/client.js, newest first, then search filters them client-side
-// over title, Khmer name, and story. While they load we show a short loading
-// line; if the query fails or the table is empty we show a friendly message
-// instead of a broken list. Empty query shows everything. A query that starts
-// with a space matches nothing until that space is removed.
+// Homepage body: hero with search, then the published entries. Entries load
+// from the Supabase "entries" table in the browser (published only, newest
+// first); search then filters them client-side over title, Khmer name and
+// story. An empty query shows everything; a query that starts with a space
+// matches nothing until the space is removed (existing behaviour).
 export default function ArchiveSearch() {
   const [entries, setEntries] = useState(null); // null = still loading
   const [loadError, setLoadError] = useState(false);
   const [query, setQuery] = useState("");
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
     let active = true;
-
     createClient()
       .from("entries")
       .select("*")
@@ -85,122 +34,71 @@ export default function ArchiveSearch() {
           setEntries([]);
           return;
         }
-        // Table columns are snake_case; map them to the prop names
-        // EntryCard already uses (khmer_name -> khmerName, photo_url -> image).
         setEntries(
           (data ?? []).map((row) => ({
             id: row.id,
-            title: row.title,
-            khmerName: row.khmer_name,
-            description: row.description,
-            contributor: row.contributor,
-            place: row.place,
+            title: row.title ?? "",
+            khmerName: row.khmer_name ?? "",
+            description: row.description ?? "",
+            place: row.place ?? "",
             image: row.photo_url,
           }))
         );
       });
-
     return () => {
       active = false;
     };
   }, []);
 
   const loading = entries === null;
-  const leadingSpace = /^\s/.test(query);
   const search = query.trim().toLowerCase();
   const results =
     loading || loadError
       ? []
       : query === ""
         ? entries
-        : leadingSpace
+        : /^\s/.test(query)
           ? []
-          : entries.filter((entry) =>
-              [entry.title, entry.khmerName, entry.description].some(
-                (field) => field.toLowerCase().includes(search)
-              )
+          : entries.filter((e) =>
+              [e.title, e.khmerName, e.description].some((f) => f.toLowerCase().includes(search))
             );
+
+  function handleQuery(value) {
+    setQuery(value);
+    setVisible(PAGE_SIZE);
+  }
+
   return (
     <>
-      {/* ::placeholder and :focus need real CSS (inline styles can't reach
-          pseudo-elements). Scoped to this input's class only. The !important
-          beats the inline border color so focus can turn the border gold. */}
-      <style>{`
-        .archive-search-input::placeholder { color: #7E6E57; opacity: 1; }
-        .archive-search-input:focus {
-          outline: 3px solid rgba(168, 121, 44, 0.28);
-          outline-offset: 1px;
-          border-color: #A8792C !important;
-        }
-        .contribute-link { transition: background-color 0.15s ease; }
-        .contribute-link:hover { background-color: #8a5a23; }
-        .contribute-link:focus-visible {
-          outline: 3px solid rgba(168, 121, 44, 0.4);
-          outline-offset: 2px;
-        }
-      `}</style>
-      <div style={styles.headerRow}>
-        <p style={styles.headerTitle}>Browse the archive</p>
-        <Link href="/contribute" className="contribute-link" style={styles.contributeLink}>
-          Contribute an Entry
-        </Link>
-      </div>
-      <div style={styles.wrap}>
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="#A8792C"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={styles.icon}
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <input
-          className="archive-search-input"
-          type="search"
-          aria-label="Search the archive"
-          placeholder="Search by title, Khmer name, or story."
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          style={styles.input}
-        />
-      </div>
-      {loading && <p style={styles.empty}>Loading entries...</p>}
-      {loadError && (
-        <p style={styles.empty}>
-          Could not load entries. Refresh the page to try again.
-        </p>
-      )}
-      {!loading && !loadError && entries.length === 0 && (
-        <p style={styles.empty}>No entries in the archive yet.</p>
-      )}
-      {!loading &&
-        !loadError &&
-        results.map((entry) => (
-          <EntryCard
-            key={entry.id}
-            id={entry.id}
-            title={entry.title}
-            khmerName={entry.khmerName}
-            description={entry.description}
-            contributor={entry.contributor}
-            place={entry.place}
-            image={entry.image}
+      <Hero>
+        <SearchBar value={query} onChange={handleQuery} />
+      </Hero>
+      <div className="archive-wrapper">
+        <section id="archive" className="container archive-section" aria-labelledby="archive-title">
+          <div className="archive-head">
+            <div>
+              <p className="kicker">The collection</p>
+              <h2 id="archive-title">Stories from Khmer Families</h2>
+              {!loading && !loadError && entries.length > 0 && (
+                <p className="archive-count" aria-live="polite">
+                  {query === "" ? `${entries.length} published` : `${results.length} of ${entries.length}`}{" "}
+                  {entries.length === 1 ? "entry" : "entries"}
+                </p>
+              )}
+            </div>
+            <Link href="/contribute" className="btn btn-gold">Contribute an entry</Link>
+          </div>
+          <ArchiveGrid
+            loading={loading}
+            loadError={loadError}
+            total={entries?.length ?? 0}
+            results={results}
+            visible={visible}
+            onMore={() => setVisible((n) => n + PAGE_SIZE)}
+            searching={query !== ""}
           />
-        ))}
-      {!loading &&
-        !loadError &&
-        entries.length > 0 &&
-        results.length === 0 &&
-        query !== "" && (
-          <p style={styles.empty}>No objects match your search.</p>
-        )}
+        </section>
+      </div>
     </>
   );
 }

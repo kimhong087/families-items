@@ -2,59 +2,39 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import "./entry-card.css";
+import { LotusMark } from "./Lotus";
+import "./home.css";
 
-const styles = {
-  card: { backgroundColor: "#FFFCF7", border: "2px solid #DDD3C3", borderRadius: 12, boxShadow: "0 2px 8px rgba(23, 20, 17, 0.06)", padding: 20 },
-  row: { display: "flex", flexWrap: "wrap", gap: 20 },
-  photoBox: { flex: "1 1 38%",  minWidth: 220,
-  backgroundColor: "#F5F0E6",
-  borderRadius: 10,
-  overflow: "hidden",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center", border: "1px solid #DDD3C3" },
-  photo: { display: "block", width: "100%", aspectRatio: "4 / 3", objectFit: "contain", borderRadius: 10 },
-  fallback: { width: "100%", aspectRatio: "4 / 3", borderRadius: 10, backgroundColor: "#F5F0E6", display: "flex", alignItems: "center", justifyContent: "center", color: "#A8792C", fontSize: 13, letterSpacing: 1 },
-  info: { flex: "1 1 55%", minWidth: 260 },
-  title: { fontFamily: "Georgia, 'Times New Roman', serif", fontSize: 21, fontWeight: 700, color: "#171411", lineHeight: 1.25, margin: "0 0 2px" },
-  khmerName: { fontSize: 15, color: "#A8792C", margin: "0 0 12px", fontWeight: 500 },
-  description: { fontSize: 15, lineHeight: 1.65, color: "#4A433B", margin: "0 0 16px", overflowWrap: "anywhere" },
-  meta: { display: "grid", gridTemplateColumns: "112px 1fr", columnGap: 12, rowGap: 4, borderTop: "1px solid #DDD3C3", paddingTop: 14 },
-  label: { fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", color: "#A8792C", margin: 0, fontWeight: 700},
-  value: { fontSize: 14, color: "#4A433B", margin: 0,},
-};
-
-export default function EntryCard({ id, title, khmerName, description, contributor, place, image, date }) {
+// One archive card; the whole card links to /entries/[id]. Every photo is
+// cropped to the same 4:3 frame so the grid stays even.
+export default function EntryCard({ id, title, khmerName, description, place, image }) {
   const [broken, setBroken] = useState(false);
+
   return (
     <Link href={`/entries/${id}`} className="entry-card-link">
-      <article className="entry-card" style={styles.card}>
-        <div style={styles.row}>
-          <div style={styles.photoBox}>
-            {image && !broken ? (
-              <img src={image} alt={title} style={styles.photo} onError={() => setBroken(true)} />
-            ) : (
-              <div style={styles.fallback}>photo coming soon</div>
-            )}
-          </div>
-          <div style={styles.info}>
-            <h3 style={styles.title}>{title}</h3>
-            <p style={styles.khmerName}>{khmerName}</p>
-            <p style={styles.description}>{description}</p>
-            <div style={styles.meta}>
-              <p style={styles.label}>Contributed by</p>
-              <p style={styles.value}>{contributor}</p>
-              <p style={styles.label}>From</p>
-              <p style={styles.value}>{place}</p>
-              {date && (
-                <>
-                  <p style={styles.label}>Collected</p>
-                  <p style={styles.value}>{date}</p>
-                </>
-              )}
+      <article className="entry-card">
+        <div className="entry-photo">
+          {image && !broken ? (
+            <img src={image} alt={title} loading="lazy" onError={() => setBroken(true)} />
+          ) : (
+            <div className="entry-photo-fallback" role="img" aria-label="Photo coming soon">
+              <LotusMark size={56} />
             </div>
-          </div>
+          )}
+        </div>
+        <div className="entry-body">
+          <h3 className="entry-title">{title}</h3>
+          {khmerName && <p className="entry-khmer">{khmerName}</p>}
+          <p className="entry-desc">{description}</p>
+          {place && (
+            <p className="entry-place">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11Z" />
+                <circle cx="12" cy="10" r="2.5" />
+              </svg>
+              {place}
+            </p>
+          )}
         </div>
       </article>
     </Link>

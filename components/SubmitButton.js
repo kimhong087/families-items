@@ -13,7 +13,7 @@ export default function SubmitButton({ children, pendingText, style }) {
   return (
     <button
       type="submit"
-      className="auth-submit"
+      className="btn btn-primary btn-block auth-submit"
       style={style}
       disabled={pending}
       aria-busy={pending}
