@@ -1,23 +1,27 @@
+"use client";
+
 import Link from "next/link";
 import { signup } from "./actions";
 import AuthShell from "../../components/AuthShell";
 import FormField from "../../components/FormField";
 import SubmitButton from "../../components/SubmitButton";
+import { useLanguage } from "../../lib/language-context";
 
-export default async function SignupPage({ searchParams }) {
-  const params = await searchParams;
+export default function SignupPage({ searchParams }) {
+  const { t } = useLanguage();
+  const params = searchParams || {};
   const errorMessage = params.error;
   const checkEmail = params.check !== undefined;
 
   return (
     <AuthShell
       active="signup"
-      title="Join the archive"
-      subtitle="Create an account to share objects and stories from your family."
+      title={t("auth.welcome")}
+      subtitle={t("auth.subtitle")}
     >
       <form action={signup}>
-        <FormField id="email" label="Email address" type="email" autoComplete="email" required placeholder="your@email.com" />
-        <FormField id="password" label="Password" type="password" autoComplete="new-password" minLength={6} required placeholder="At least 6 characters" />
+        <FormField id="email" label={t("auth.email")} type="email" autoComplete="email" required placeholder={t("auth.emailPlaceholder")} />
+        <FormField id="password" label={t("auth.password")} type="password" autoComplete="new-password" minLength={6} required placeholder={t("auth.passwordPlaceholder")} />
 
         {checkEmail && (
           <p className="notice notice-success" style={{ marginBottom: 16 }}>
@@ -31,10 +35,10 @@ export default async function SignupPage({ searchParams }) {
           </p>
         )}
 
-        <SubmitButton pendingText="Creating account...">Create account</SubmitButton>
+        <SubmitButton pendingText={t("auth.pendingSignup")}>{t("auth.signupButton")}</SubmitButton>
 
         <p className="auth-hint">
-          Already have an account? <Link href="/login">Log in</Link>
+          {t("auth.haveAccountHint")} <Link href="/login">{t("auth.loginLink")}</Link>
         </p>
       </form>
     </AuthShell>

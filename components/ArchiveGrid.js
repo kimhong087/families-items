@@ -1,27 +1,32 @@
+"use client";
+
 import EntryCard from "./EntryCard";
 import EmptyState from "./EmptyState";
+import { useLanguage } from "../lib/language-context";
 
 // Loading, error, empty, no-match and result states for the archive grid.
 export default function ArchiveGrid({ loading, loadError, total, results, visible, onMore, searching }) {
-  if (loading) return <p className="notice" role="status">Loading entries…</p>;
+  const { t } = useLanguage();
+  
+  if (loading) return <p className="notice" role="status">{t("archive.loading")}</p>;
   if (loadError) {
     return (
-      <EmptyState title="We couldn't load the archive">
-        Something went wrong while fetching entries. Please refresh the page to try again.
+      <EmptyState title={t("archive.error")}>
+        {t("emptyState.description")}
       </EmptyState>
     );
   }
   if (total === 0) {
     return (
-      <EmptyState title="No entries in the archive yet">
-        Published entries will appear here. Be the first to share an object that matters to your family.
+      <EmptyState title={t("dashboard.noEntries")}>
+        {t("dashboard.noEntriesDesc")}
       </EmptyState>
     );
   }
   if (results.length === 0 && searching) {
     return (
-      <EmptyState title="No objects match your search">
-        Try a different word, or search by the Khmer name or a detail from the story.
+      <EmptyState title={t("emptyState.title")}>
+        {t("emptyState.description")}
       </EmptyState>
     );
   }
@@ -36,7 +41,7 @@ export default function ArchiveGrid({ loading, loadError, total, results, visibl
       {results.length > visible && (
         <div className="load-more">
           <button type="button" className="btn btn-outline" onClick={onMore}>
-            Load more entries
+            {t("archive.loadMore")}
           </button>
         </div>
       )}

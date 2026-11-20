@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import collection from "../../../collection.config.js";
 import DeleteEntryButton from "../../../components/DeleteEntryButton";
@@ -49,7 +50,23 @@ export default async function EntryPage({ params }) {
           <div className="detail-grid">
             <div className="detail-photo">
               <div className="detail-photo-frame">
-                {entry.photo_url && <img src={entry.photo_url} alt={entry.title} />}
+                {entry.photo_url && entry.photo_url.trim() && (
+                  <Image
+                    src={entry.photo_url.trim()}
+                    alt={entry.title}
+                    width={800}
+                    height={600}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                    quality={90}
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTNlY2U2Ii8+PC9zdmc+"
+                  />
+                )}
               </div>
             </div>
 

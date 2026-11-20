@@ -1,6 +1,12 @@
+"use client";
+
+import { useLanguage } from "../lib/language-context";
+
 // Hero search box. Typing filters the archive below live; pressing Search (or
 // Enter) also scrolls down to the results.
 export default function SearchBar({ value, onChange }) {
+  const { t } = useLanguage();
+  
   function handleSubmit(event) {
     event.preventDefault();
     document.getElementById("archive")?.scrollIntoView({ behavior: "smooth" });
@@ -14,12 +20,12 @@ export default function SearchBar({ value, onChange }) {
       </svg>
       <input
         type="search"
-        aria-label="Search the archive"
-        placeholder="Search by title, Khmer name, or story…"
+        aria-label={t("hero.searchLabel")}
+        placeholder={t("hero.searchPlaceholder")}
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
-      <button type="submit">Search</button>
+      <button type="submit">{t("hero.searchButton")}</button>
     </form>
   );
 }

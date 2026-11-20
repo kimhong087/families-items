@@ -1,33 +1,37 @@
+"use client";
+
 import Link from "next/link";
 import { login } from "./actions";
 import AuthShell from "../../components/AuthShell";
 import FormField from "../../components/FormField";
 import SubmitButton from "../../components/SubmitButton";
+import { useLanguage } from "../../lib/language-context";
 
-export default async function LoginPage({ searchParams }) {
-  const params = await searchParams;
+export default function LoginPage({ searchParams }) {
+  const { t } = useLanguage();
+  const params = searchParams || {};
   const failed = params.error !== undefined;
 
   return (
     <AuthShell
       active="login"
-      title="Welcome"
-      subtitle="Sign in to contribute, explore, and help preserve our family histories."
+      title={t("auth.welcome")}
+      subtitle={t("auth.subtitle")}
     >
       <form action={login}>
-        <FormField id="email" label="Email address" type="email" autoComplete="email" required placeholder="your@email.com" />
-        <FormField id="password" label="Password" type="password" autoComplete="current-password" required placeholder="Your password" />
+        <FormField id="email" label={t("auth.email")} type="email" autoComplete="email" required placeholder={t("auth.emailPlaceholder")} />
+        <FormField id="password" label={t("auth.password")} type="password" autoComplete="current-password" required placeholder={t("auth.passwordPlaceholder")} />
 
         {failed && (
           <p role="alert" className="notice notice-error" style={{ marginBottom: 16 }}>
-            Invalid email or password
+            {t("auth.invalidCredentials")}
           </p>
         )}
 
-        <SubmitButton pendingText="Logging in...">Sign in</SubmitButton>
+        <SubmitButton pendingText={t("auth.pendingLogin")}>{t("auth.loginButton")}</SubmitButton>
 
         <p className="auth-hint">
-          New to the archive? <Link href="/signup">Create an account</Link>
+          {t("auth.createAccountHint")} <Link href="/signup">{t("auth.signupLink")}</Link>
         </p>
       </form>
     </AuthShell>

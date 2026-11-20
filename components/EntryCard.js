@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { LotusMark } from "./Lotus";
 import "./home.css";
 
@@ -9,13 +10,30 @@ import "./home.css";
 // cropped to the same 4:3 frame so the grid stays even.
 export default function EntryCard({ id, title, khmerName, description, place, image }) {
   const [broken, setBroken] = useState(false);
+  const trimmedImage = image ? image.trim() : null;
 
   return (
     <Link href={`/entries/${id}`} className="entry-card-link">
       <article className="entry-card">
         <div className="entry-photo">
-          {image && !broken ? (
-            <img src={image} alt={title} loading="lazy" onError={() => setBroken(true)} />
+          {trimmedImage && !broken ? (
+            <Image
+              src={trimmedImage}
+              alt={title}
+              width={400}
+              height={300}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              style={{ 
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+              loading="lazy"
+              onError={() => setBroken(true)}
+              quality={85}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTNlY2U2Ii8+PC9zdmc+"
+            />
           ) : (
             <div className="entry-photo-fallback" role="img" aria-label="Photo coming soon">
               <LotusMark size={56} />

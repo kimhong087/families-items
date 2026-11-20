@@ -6,6 +6,7 @@ import { createClient } from "../lib/supabase/client";
 import Hero from "./Hero";
 import SearchBar from "./SearchBar";
 import ArchiveGrid from "./ArchiveGrid";
+import { useLanguage } from "../lib/language-context";
 
 const PAGE_SIZE = 9;
 
@@ -15,6 +16,7 @@ const PAGE_SIZE = 9;
 // story. An empty query shows everything; a query that starts with a space
 // matches nothing until the space is removed (existing behaviour).
 export default function ArchiveSearch() {
+  const { t } = useLanguage();
   const [entries, setEntries] = useState(null); // null = still loading
   const [loadError, setLoadError] = useState(false);
   const [query, setQuery] = useState("");
@@ -68,6 +70,17 @@ export default function ArchiveSearch() {
     setVisible(PAGE_SIZE);
   }
 
+  // Format the entry count text
+  const getEntryCountText = () => {
+    if (loading || loadError || entries.length === 0) return "";
+    
+    if (query === "") {
+      return `${entries.length} ${t("archive.published")}`;
+    } else {
+      return `${results.length} of ${entries.length}`;
+    }
+  };
+
   return (
     <>
       <Hero>
@@ -77,16 +90,16 @@ export default function ArchiveSearch() {
         <section id="archive" className="container archive-section" aria-labelledby="archive-title">
           <div className="archive-head">
             <div>
-              <p className="kicker">The collection</p>
-              <h2 id="archive-title">Stories from Khmer Families</h2>
+              <p className="kicker">{t("archive.title")}</p>
+              <h2 id="archive-title">{t("archive.title")}</h2>
               {!loading && !loadError && entries.length > 0 && (
                 <p className="archive-count" aria-live="polite">
-                  {query === "" ? `${entries.length} published` : `${results.length} of ${entries.length}`}{" "}
-                  {entries.length === 1 ? "entry" : "entries"}
+                  {getEntryCountText()}{" "}
+                  {entries.length === 1 ? t("archive.countEntries", { count: 1 }) : t("archive.countEntries", { count: entries.length })}
                 </p>
               )}
             </div>
-            <Link href="/contribute" className="btn btn-gold">Contribute an entry</Link>
+            <Link href="/contribute" className="btn btn-gold">{t("archive.contributeButton")}</Link>
           </div>
           <ArchiveGrid
             loading={loading}

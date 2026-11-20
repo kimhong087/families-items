@@ -1,10 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { LotusMark, LotusSpray } from "./Lotus";
+import { useLanguage } from "../lib/language-context";
 import "./auth.css";
 
 // Split screen for /login and /signup: heritage artwork on one side, the form
 // on the other. `active` is "login" or "signup" (highlights the tab).
 export default function AuthShell({ active, title, subtitle, children }) {
+  const { t } = useLanguage();
+  
   return (
     <main className="auth">
       <section className="auth-visual" aria-hidden="true">
@@ -25,11 +30,11 @@ export default function AuthShell({ active, title, subtitle, children }) {
           <h1>{title}</h1>
           <p className="auth-sub">{subtitle}</p>
           <div className="auth-tabs">
-            <Link href="/login" className="auth-tab" aria-current={active === "login" ? "page" : undefined}>Sign in</Link>
-            <Link href="/signup" className="auth-tab" aria-current={active === "signup" ? "page" : undefined}>Create account</Link>
+            <Link href="/login" className="auth-tab" aria-current={active === "login" ? "page" : undefined}>{t("auth.loginButton")}</Link>
+            <Link href="/signup" className="auth-tab" aria-current={active === "signup" ? "page" : undefined}>{t("auth.signupButton")}</Link>
           </div>
           {children}
-          <Link href="/" className="auth-back">← Back to the archive</Link>
+          <Link href="/" className="auth-back">← {t("common.back")} {t("nav.browse")}</Link>
         </div>
       </section>
     </main>

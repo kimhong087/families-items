@@ -77,7 +77,7 @@ const entries = [
       "An old clay cooking pot and charcoal stove from my grandmother’s home in Takeo. She used them to cook rice and soup for the family, especially during family gatherings like Khmer New Year. After years of use, the pot became worn and stained, but it has remained in our family and is still being used today. Now that my grandmother is too old to cook, my mother has taken over and continues to use the same pot, keeping the tradition alive in our family.",
     contributor: "Nou Vireak",
     place: "Takeo Province",
-    image: "/photos/clay.avif ",
+    image: "/photos/clay.avif",
     date: "August 2026",
   },
   {

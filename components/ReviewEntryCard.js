@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { createClient } from "../lib/supabase/client";
 
 const styles = {
@@ -232,12 +233,24 @@ export default function ReviewEntryCard({
     <article style={styles.card}>
       <div style={styles.row}>
         <div style={styles.photoBox}>
-          {photoUrl && !broken ? (
-            <img
-              src={photoUrl}
+          {photoUrl && photoUrl.trim() && !broken ? (
+            <Image
+              src={photoUrl.trim()}
               alt={title}
-              style={styles.photo}
+              width={400}
+              height={300}
+              sizes="(max-width: 768px) 100vw, 400px"
+              style={{
+                display: 'block',
+                width: '100%',
+                aspectRatio: '4 / 3',
+                objectFit: 'contain',
+                borderRadius: 10,
+              }}
               onError={() => setBroken(true)}
+              quality={85}
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTNlY2U2Ii8+PC9zdmc+"
             />
           ) : (
             <div style={styles.fallback}>photo coming soon</div>

@@ -10,6 +10,7 @@ import { submitEntry } from "../lib/entrySubmit";
 import FormField from "./FormField";
 import FormTips from "./FormTips";
 import PhotoDropzone from "./PhotoDropzone";
+import { useLanguage } from "../lib/language-context";
 import "./form.css";
 
 const EMPTY = { title: "", khmer_name: "", description: "", place: "", contributor: "" };
@@ -20,6 +21,7 @@ const EMPTY = { title: "", khmer_name: "", description: "", place: "", contribut
 // allowed columns. Validation and saving are unchanged (lib/validateEntry.js,
 // lib/photo.js, lib/entrySubmit.js); this file only handles form state + UI.
 export default function ContributeForm({ mode = "create", entryId = null, initial = null }) {
+  const { t } = useLanguage();
   const router = useRouter();
   const photoInputRef = useRef(null);
   const hasCurrentPhoto = Boolean(initial && initial.photo_url);
@@ -78,7 +80,7 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
       return;
     }
     // Create: stay on the page, show the pending-review message, reset the form.
-    setSubmitSuccess("Thank you for your contribution! Your entry is waiting for review.");
+    setSubmitSuccess(t("notice.contributionSubmitted"));
     setFields(EMPTY);
     setPhoto(null);
     if (photoInputRef.current) photoInputRef.current.value = "";
@@ -91,24 +93,24 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
       {submitError && <p role="alert" className="notice notice-error form-notice">{submitError}</p>}
       {submitSuccess && (
         <p role="status" className="notice notice-success form-notice">
-          {submitSuccess} <Link href="/my-entries">Track it in My entries</Link>
+          {submitSuccess} <Link href="/my-entries">{t("notice.trackInMyEntries")}</Link>
         </p>
       )}
       <div className="form-columns">
         <div>
           <div className="field-row">
-            <FormField id="title" label="Title (English)" required placeholder="e.g. Grandma's Hidden Riels" {...field("title")} />
-            <FormField id="khmer_name" label="Title (Khmer)" required lang="km" placeholder="ឧ. លុយរៀលរបស់លោកយាយ" {...field("khmer_name")} />
+            <FormField id="title" label={t("form.title")} required placeholder={t("form.titlePlaceholder")} {...field("title")} />
+            <FormField id="khmer_name" label={t("form.khmerName")} required lang="km" placeholder={t("form.khmerNamePlaceholder")} {...field("khmer_name")} />
           </div>
-          <FormField id="description" label="Description / Story" required as="textarea" rows={6} placeholder="Tell the story behind this item…" hint="At least 100 characters." {...field("description")} />
+          <FormField id="description" label={t("form.description")} required as="textarea" rows={6} placeholder={t("form.descriptionPlaceholder")} hint={t("form.descriptionHint")} {...field("description")} />
           <div className="field-row">
-            <FormField id="place" label="Place of origin" required as="select" {...field("place")}>
-              <option value="">Select a place</option>
+            <FormField id="place" label={t("form.place")} required as="select" {...field("place")}>
+              <option value="">{t("form.placePlaceholder")}</option>
               {PLACES.map((place) => (
                 <option key={place} value={place}>{place}</option>
               ))}
             </FormField>
-            <FormField id="contributor" label="Contributor" required placeholder="Your name" {...field("contributor")} />
+            <FormField id="contributor" label={t("form.contributor")} required placeholder={t("form.contributorPlaceholder")} {...field("contributor")} />
           </div>
         </div>
         <div>
@@ -125,7 +127,7 @@ export default function ContributeForm({ mode = "create", entryId = null, initia
       </div>
       <div className="form-submit">
         <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? "Saving..." : mode === "edit" ? "Save changes" : "Submit entry"}
+          {saving ? t("common.saving") : mode === "edit" ? t("form.saveChanges") : t("form.submitEntry")}
         </button>
       </div>
     </form>

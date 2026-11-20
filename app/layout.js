@@ -1,5 +1,6 @@
 import collection from "../collection.config.js";
 import "./globals.css";
+import ClientLayout from "./client-layout";
 
 export const metadata = {
   title: `${collection.name} — Khmer Living Archive`,
@@ -20,7 +21,9 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="stylesheet" href={FONTS} />
       </head>
-      <body>{children}</body>
+      <body>
+        <ClientLayout>{children}</ClientLayout>
+      </body>
     </html>
   );
 }

@@ -302,6 +302,66 @@ h3 {
   color: var(--gold-ink);
   cursor: pointer;
 }
+/* Language switcher */
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 12px;
+  border-left: 1px solid var(--line);
+  padding-left: 12px;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--ink-soft);
+}
+
+.lang-btn:hover {
+  color: var(--teal);
+  background: var(--teal-tint);
+}
+
+.lang-btn-active {
+  color: var(--teal);
+  background: var(--teal-tint);
+}
+
+.lang-separator {
+  color: var(--line);
+  font-weight: 300;
+}
+
+@media (max-width: 920px) {
+  .language-switcher {
+    margin-left: 8px;
+    padding-left: 8px;
+  }
+  
+  .lang-btn {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .language-switcher {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    margin-top: 8px;
+    justify-content: center;
+    width: 100%;
+  }
+}
 .link-button:hover {
   text-decoration: underline;
 }
